@@ -1,0 +1,18 @@
+CIRCLE
+  5
+7C
+330
+70
+100
+AcDbEntity
+  8
+MuCad v1_Sketch1
+100
+AcDbCircle
+ 10
+ 20
+ 30
+0.0
+ 40
+  0
+

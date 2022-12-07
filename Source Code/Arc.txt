@@ -1,0 +1,26 @@
+ARC
+  5
+7D
+330
+70
+100
+AcDbEntity
+  8
+MuCad v2_Sketch1
+100
+AcDbCircle
+ 10
+5.0
+ 20
+5.0
+ 30
+0.0
+ 40
+2.0
+100
+AcDbArc
+ 50
+90.0
+ 51
+270.0
+  0

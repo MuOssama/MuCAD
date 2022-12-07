@@ -1,0 +1,20 @@
+LINE
+  5
+7E
+330
+70
+100
+AcDbEntity
+  8
+MuCad v1_Sketch1
+100
+AcDbLine
+ 10
+ 20
+ 30
+0.0
+ 11
+ 21
+ 31
+0.0
+  0

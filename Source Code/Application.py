@@ -1,9 +1,9 @@
 """
 **********************************************
 **********************************************
-**********          MuCAD           **********
+**********         MuCAD V3         **********
 **********   By: Mustapha Ossama    **********
-**********     Date: 6/11/2024      **********
+**********     Date: 7/2/2022      **********
 **********************************************
 **********************************************
 **********************************************
@@ -18,8 +18,8 @@ from tkinter import messagebox
 from turtle import*
 from PIL import Image, ImageTk
 import math 
-
-
+import time
+import numpy as np
 
 """
 ###############################
@@ -114,11 +114,11 @@ def ChoosePlaneFunction():
    
 ChoosePlaneVariable = StringVar()
 ChoosePlaneVar = "NAN"
-OnePlaneButton = Radiobutton(window,width=15,height=4, text= "Draw on One Plane",variable = ChoosePlaneVariable, value = "One Plane", command= lambda:ChoosePlaneFunction())
-ThreePlaneButton = Radiobutton(window,width=15,height=4,  text= "Draw on Three Planes",variable = ChoosePlaneVariable, value = "Three Planes", command= lambda:ChoosePlaneFunction())
+OnePlaneButton = Radiobutton(window,width=20,height=5, text= "Draw on One Plane",font = 10,variable = ChoosePlaneVariable, value = "One Plane", command= lambda:ChoosePlaneFunction())
+ThreePlaneButton = Radiobutton(window,width=20,height=5,  text= "Draw on Three Planes",font = 10,variable = ChoosePlaneVariable, value = "Three Planes", command= lambda:ChoosePlaneFunction())
 
-OnePlaneButton.place(x=300,y=300)
-ThreePlaneButton.place(x=300,y=500)
+OnePlaneButton.place(x=500,y=300)
+ThreePlaneButton.place(x=500,y=500)
 
 
 
@@ -132,9 +132,9 @@ IMGLabel.place(x=500,y=0)
 
 
 
-
-
-
+EntitiesCanvasIndex = 0.0
+Entities = []
+buffer = []
 def Choose():
 
 
@@ -143,11 +143,11 @@ def Choose():
 
     GcodeLines = []
     GcodeCanvasIndex = 0.0
-        
+    
     """
     ###############################
     ######                  #######
-    ######   Three Views    #######
+    ######    Three Views   #######
     ######    Elevation     #######
     ######    Side          #######
     ######    Top           #######
@@ -157,7 +157,7 @@ def Choose():
     """        
         
         
-    if ChoosePlaneVar == "One Plane":
+    if ChoosePlaneVar == "Three Planes":
         """
         *******************************
         ******     Canvases     *******
@@ -911,16 +911,21 @@ def Choose():
        
         
         
-    if ChoosePlaneVar == "Three Planes":
+    if ChoosePlaneVar == "One Plane":
         """
         *******************************
         ******     Canvases     *******
         *******************************
         """
+        
         OnePlaneButton.destroy()
         ThreePlaneButton.destroy()
-
         #Definitions
+        Entities = []  
+                            #Line -> x1, y1, x2, y2
+                            #rectangle -> x1, y1, x2, y2
+                            #Arc  -> x1, y1, startAngle, endAngle, Redius
+        
         CanvasSizeX = 800
         CanvasSizeY = 600
         SideOffsetX = 100
@@ -938,7 +943,6 @@ def Choose():
 
 
 
-
         #Elevation view region (canvas)
         ElevationCanvas = Canvas(window, height=CanvasSizeY, width=CanvasSizeX )
         ElevationCanvas.place(x = ElevationShiftX, y = ElevationShiftY)
@@ -951,9 +955,12 @@ def Choose():
         GcodeCanvasHeight = 800
 
         GcodeLines = []
-        GcodeCanvasIndex = 0
         
         
+
+
+        
+        #Gcode Canvas
         GcodeCanvas = Text(window, height=GcodeCanvasHeight, width=GcodeCanvasWidth)
         GcodeCanvas.place(x=1200,y=50)
         GcodeCanvasIndex = 0.0
@@ -965,7 +972,14 @@ def Choose():
         ElevationTurtle = RawTurtle(ElevationScreen)
 
 
+        """
+        *******************************
+        ******  Initialization  *******
+        *******************************
+        """     
         ElevationTurtle.hideturtle()
+        ElevationTurtle.setundobuffer(100)
+        ElevationTurtle.speed(10)
 
 
 
@@ -987,9 +1001,6 @@ def Choose():
         
         
         #Titles 
-
-
-
         TextOffsetY = 10
 
 
@@ -999,30 +1010,27 @@ def Choose():
         GcodeText.place(x=1200, y=0)
 
 
+      
 
         #Tiltes (Entries)
-
-        X1Text = Label(window, text="X1",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        Y1Text = Label(window, text="Y1",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        X2Text = Label(window, text="X2",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        Y2Text = Label(window, text="Y2",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        LengthText = Label(window, text="Length",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        RediusText = Label(window, text="Redius",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        AngleText = Label(window, text="Angle",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
-        SidesText = Label(window, text="Sides",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
+        DXFFileName = Label(window, text="DXF File Name",fg="black", bg = "light blue",font = 5, height = 1, width = 15)
+        GcodeFileName = Label(window, text="Gcode File Name",fg="black", bg = "light blue",font = 5, height = 1, width = 15)
+        ValueAEntryText = Label(window, text="Value A",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
+        ValueBEntryText = Label(window, text="Value B",fg="black", bg = "light blue",font = 5, height = 1, width = 10)
+        SelectedEntitiyEntryText = Label(window, text="Selected Entites",fg="black", bg = "light blue",font = 5, height = 1, width = 15)      
+        
 
         EntryOffsetX = 80
         EntryOffsetY = 50
 
 
-        X1Text.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*1)+2)
-        Y1Text.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*2))
-        X2Text.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*3))
-        Y2Text.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*4))
-        LengthText.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*5))
-        RediusText.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*6))
-        AngleText.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*7))
-        SidesText.place(x=CanvasSizeX+EntryOffsetX, y=TopOffsetY+(EntryOffsetY*8))
+        DXFFileName.place(x=CanvasSizeX+EntryOffsetX-130, y=0)
+        GcodeFileName.place(x=CanvasSizeX+EntryOffsetX-130, y=50)
+        ValueAEntryText.place(x=230, y=90)
+        ValueBEntryText.place(x=380, y=90)
+        SelectedEntitiyEntryText.place(x=0, y=90)
+        
+
 
 
 
@@ -1036,15 +1044,11 @@ def Choose():
         ******     Entries      *******
         *******************************
         """
-        X1Input = Entry(window, font=5, fg="black", bg="white",width=8)
-        Y1Input = Entry(window, font=5, fg="black", bg="white",width=8)
-        X2Input = Entry(window, font=5, fg="black", bg="white",width=8)
-        Y2Input = Entry(window, font=5, fg="black", bg="white",width=8)
-        LengthInput = Entry(window, font=5, fg="black", bg="white",width=8)
-        RediusInput = Entry(window, font=5, fg="black", bg="white",width=8)
-        AngleInput = Entry(window, font=5, fg="black", bg="white",width=8)
-        SidesInput = Entry(window, font=5, fg="black", bg="white",width=8)
-
+        DXFEntry = Entry(window, font=5, fg="black", bg="white",width=25)
+        GcodeEntry = Entry(window, font=5, fg="black", bg="white",width=25)
+        ValueAEntry = Entry(window, font=5, fg="black", bg="white",width=10)
+        ValueBEntry = Entry(window, font=5, fg="black", bg="white",width=10)
+        SelectedEntitiesEntry = Entry(window, font=5, fg="black", bg="white",width=15)
 
 
         SeperationX = 130
@@ -1055,18 +1059,12 @@ def Choose():
 
 
 
-        X1Input.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*1))
-        Y1Input.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*2))
-        X2Input.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*3))
-        Y2Input.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*4))
-        LengthInput.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*5))
-        RediusInput.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*6))
-        AngleInput.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*7))
-        SidesInput.place(x=X1OffsetX, y=X1OffsetY + (SeperationY*8))
+        DXFEntry.place(x=X1OffsetX-80, y=0)
+        GcodeEntry.place(x=X1OffsetX-80, y=50)
 
-
-
-
+        ValueAEntry.place(x=230, y=120)
+        ValueBEntry.place(x=380, y=120)
+        SelectedEntitiesEntry.place(x=0, y=120)
 
 
 
@@ -1087,23 +1085,124 @@ def Choose():
             #Clear Planes
             ClearAllEditFunc()
             #Clear Inputs
-            X1Input.delete(0,END)
-            Y1Input.delete(0,END)
-            X2Input.delete(0,END)
-            Y2Input.delete(0,END)
-            LengthInput.delete(0,END)
-            RediusInput.delete(0,END)
-            AngleInput.delete(0,END)
-            SidesInput.delete(0,END)
+            buffer = []
+            Entities = []
 
             
             
         def ExitFileFunc():
             window.quit()
             
+            
+        def ExportDXF():
+            global Entities
+            filepath = DXFEntry.get()
+            if filepath == "":
+                messagebox.showinfo("DXF File Name is Emptty","Fill DXF File Name")
+
+
+            
+            dxffile = open(filepath,'a+')
+            dxffile.close()
+            dxffile = open(filepath,'w')
+            dxffile.close()
+
+            dxffile = open(filepath,'a+')
+            #write the start sections
+            startSection = open('Start.txt','r')
+            lines = startSection.readlines()
+            startSection.close()
+            for line in lines:
+                dxffile.write(line)
+                
+            #write the Entity Sections 
+            entitylist = []            
+            linefile = open('Line.txt','r')
+            linelines = linefile.readlines()
+            linefile.close()
+            circlefile = open('Circle.txt','r')
+            circlelines = circlefile.readlines()
+            circlefile.close()
+            
+            for entity in Entities:
+                #detect line
+                if entity[0] == 'line':
+                    for i in range(len(linelines)):
+                        if linelines[i].strip() == "10" and linelines[i][0] == " ":
+                            entitylist.append(linelines[i])
+                            entitylist.append(str(entity[1])+'\n')
+                            print("******"+str(entity[1])+"*******")
+                        elif linelines[i].strip() == "20"  and linelines[i][0] == " ":
+                            entitylist.append(linelines[i])
+                            entitylist.append(str(entity[2])+'\n')
+                            print("******"+str(entity[2])+"*******")
+                        elif linelines[i].strip() == "11"  and linelines[i][0] == " ":
+                            entitylist.append(linelines[i])
+                            entitylist.append(str(entity[3])+'\n')
+                            print("******"+str(entity[3])+"*******")
+                        elif linelines[i].strip() == "21"  and linelines[i][0] == " ":
+                            entitylist.append(linelines[i])
+                            entitylist.append(str(entity[4])+'\n')
+                            print("******"+str(entity[4])+"*******")
+                        else:
+                            entitylist.append(linelines[i])
+
+
+                #detect circle
+                elif entity[0] == 'circle':
+                    for i in range(len(circlelines)):
+                        if circlelines[i].strip() == "10" and circlelines[i][0] == " ":
+                            entitylist.append(circlelines[i])
+                            entitylist.append(str(entity[1])+'\n')
+                            print("******"+str(entity[1])+"*******")
+
+                        elif circlelines[i].strip() == "20"  and circlelines[i][0] == " ":
+                            entitylist.append(circlelines[i])
+                            entitylist.append(str(entity[2])+'\n')
+                            print("******"+str(entity[2])+"*******")
+                        
+                        elif circlelines[i].strip() == "40"  and circlelines[i][0] == " ":
+                            entitylist.append(circlelines[i])
+                            entitylist.append(str(entity[3])+'\n')
+                            print("******"+str(entity[3])+"*******")
+
+                        else:
+                            entitylist.append(circlelines[i])              
+            print(Entities)
+            for j in entitylist:
+                dxffile.write(j)
+            
+            #write the end sections
+            endSection = open('End.txt','r')
+            lines = endSection.readlines()
+            endSection.close()
+            for line in lines:
+                dxffile.write(line)
+            
+        def ExportGcode():
+            global GcodeLines
+            filepath = GcodeEntry.get()
+            if filepath == "":
+                messagebox.showinfo("GCODE File Name is Emptty","Fill GCODE File Name")
+            
+            
+            Gcodefile = open(filepath,'a+')
+            Gcodefile.close()
+            Gcodefile = open(filepath,'w')
+            Gcodefile.close()
+            Gcodefile = open(filepath,'a+')
+            for i in GcodeLines:
+                Gcodefile.write(i)
+                    
+                
+            
         FileMenu = Menu(myMenu)
         myMenu.add_cascade(label="file", menu = FileMenu)
         FileMenu.add_command(label="New", command= lambda:NewFileFunc())
+        FileMenu.add_separator()
+        FileMenu.add_command(label="Export DXF", command= lambda:ExportDXF())
+        FileMenu.add_separator()
+        FileMenu.add_command(label="Export Gcode", command= lambda:ExportGcode())
         FileMenu.add_separator()
         FileMenu.add_command(label="Exit", command= lambda:ExitFileFunc())
 
@@ -1147,8 +1246,8 @@ def Choose():
             messagebox.showinfo("Cartesian Line","Select Plane\nFill X1\nFill Y1\nFill X2\nFill Y2")
             
             
-        def PolarLineHelpFunc():
-            messagebox.showinfo("Polar Line","Select Plane\nFill X1\nFill Y1\nFill Angle\nFill Redius")
+        def CircleHelpFunc():
+            messagebox.showinfo("Circle","Select Plane\nFill X1\nFill Y1\nFill Angle\nFill Redius")
 
             
         def ArcHelpFunc():
@@ -1159,21 +1258,17 @@ def Choose():
             messagebox.showinfo("Rectangle","Select Plane\nFill X1\nFill Y1\nFill X2\nFill Y2")
           
           
-        def PolygonHelpFunc():
-            messagebox.showinfo("Polygon","Select Plane\nFill X1\nFill Y1\nFill Redius\nFill Sides ")
-
             
         HelpMenu = Menu(myMenu)
         myMenu.add_cascade(label="Help", menu = HelpMenu)
         HelpMenu.add_command(label="How to draw a Cartesian line", command= lambda:CartesianLineHelpFunc())
         HelpMenu.add_separator()
-        HelpMenu.add_command(label="How to draw a Polar line", command= lambda:PolarLineHelpFunc())
+        HelpMenu.add_command(label="How to draw a Circle", command= lambda:CircleHelpFunc())
         HelpMenu.add_separator()
         HelpMenu.add_command(label="How to draw an Arc", command= lambda:ArcHelpFunc())
         HelpMenu.add_separator()
         HelpMenu.add_command(label="How to draw a Rectangle", command= lambda:RectangleHelpFunc())
         HelpMenu.add_separator()
-        HelpMenu.add_command(label="How to draw a Polygon", command= lambda:PolygonHelpFunc())
 
 
 
@@ -1192,89 +1287,115 @@ def Choose():
         *******************************
         """
         #optionMenu functions
+    
+
+        def GetPos(x,y):
+            global buffer
+            buffer.append([x,y])
+            print("#########")
+            print(buffer)
+            print("#########")
 
 
+
+        ElevationScreen.onscreenclick(GetPos,btn = 1)
+    
         #CartesianLine function
         def CartesianLineFunction():
+            global Entities
+            global buffer
+            #get user inputs            
+            if len(buffer) == 2: 
+                x1 = buffer[0][0]
+                y1 = buffer[0][1]
+                x2 = buffer[1][0]
+                y2 = buffer[1][1]
+                
 
-            #get user inputs
-            x1 = float(X1Input.get())-(CanvasSizeX/2)
-            y1 = float(Y1Input.get())-(CanvasSizeY/2)
-            x2 = float(X2Input.get())-(CanvasSizeX/2)
-            y2 = float(Y2Input.get())-(CanvasSizeY/2)
-            
-            
+                #set starting position to write the line
+                ElevationTurtle.penup()
+                ElevationTurtle.setx(int(x1))
+                ElevationTurtle.sety(int(y1))
 
-            #set starting position to write the line
-            ElevationTurtle.penup()
-            ElevationTurtle.setx(int(x1))
-            ElevationTurtle.sety(int(y1))
+               
+                #drawing
+                ElevationTurtle.pendown()
+                ElevationTurtle.goto(int(x2),int(y2))
+                
+                #save entity
+                Entities.append(["line",x1,y1,x2,y2])
+                print(Entities)
+                #for G CODE
+                global GcodeCanvasIndex
+                global EntitiesCanvasIndex
+                GcodeLines.append("G01 X{} Y{}\n".format(x2,y2))
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+                #for Entities
+                #EntitiesCanvas.insert(EntitiesCanvasIndex,Entities[int(EntitiesCanvasIndex)])
+                #EntitiesCanvasIndex += 1
+            else:
+                messagebox.showinfo("Wrong input","Enter Only two Coordinates")
 
-           
-            #drawing
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(int(x2),int(y2))
+            buffer = []
             
             
-            #for G CODE
-            global GcodeCanvasIndex
-            GcodeLines.append("G01 X{} Y{}\n".format(x2+(CanvasSizeX/2),y2+(CanvasSizeX/2)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
-            
-            
-            
-        #RAngleLine function
-        def RCitaLineFunction():
-
-            #get user inputs
-            x1 = float(X1Input.get())-(CanvasSizeX/2)
-            y1 = float(Y1Input.get())-(CanvasSizeY/2)
-            R = float(RediusInput.get())
-            Angle = float(AngleInput.get()) #Angle is Cita
-            
-            x2 = R*(math.cos(math.radians(Angle)))+x1
-            y2 = R*(math.sin(math.radians(Angle)))+y1
-            
-            
-            #set starting position to write the line
-            ElevationTurtle.penup()
-            ElevationTurtle.home()
-            ElevationTurtle.setx(int(x1))
-            ElevationTurtle.sety(int(y1))
-
-           
-            #drawing
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(int(x2),int(y2))
-     
-     
-            #for G CODE
-            global GcodeCanvasIndex
-            GcodeLines.append("G01 X{} Y{}\n".format(round(x2+(CanvasSizeX/2),3),round(y2+(CanvasSizeX/2),3)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
-            
-          
+      
          
-         
-         
-        #ArcCircle function
+        def dotproduct(v1, v2):
+            return abs(v1[0]*v2[0])+(v1[1]*v2[1])
+    
+        def length(v):
+            return math.sqrt(dotproduct(v, v))
+
+        def angle(v1, v2):
+            return math.acos(dotproduct(v1, v2) / (length(v1) * length(v2)))*180/math.pi
+        
+        
         def ArcCircleFunction():
 
+            global buffer
             #get user inputs
-            x1 = float(X1Input.get())-(CanvasSizeX/2)
-            y1 = float(Y1Input.get())-(CanvasSizeY/2)
-            R = float(RediusInput.get())
-            Angle = float(AngleInput.get()) #Angle is Cita
+            x1 = buffer[0][0]
+            y1 = buffer[0][1]
+            x2 = buffer[1][0]
+            y2 = buffer[1][1]
+            #for point 1 and 2 to get the R
+            dx = x1 - x2
+            dy = y1 - y2
+            R = math.sqrt(pow(dx,2)+pow(dy,2))
+
+
+
+            #get the acute angle between vector 01 and 02     
+            Angle = angle(buffer[2],buffer[1])
             
+            #detect the the quadrant
+            if buffer[2][0] > buffer[0][0] and buffer[2][1] > buffer[0][1]:
+                Angle += 0
+                quadrant = 1
+            elif buffer[2][0] < buffer[0][0] and buffer[2][1] > buffer[0][1]:
+                Angle += 90
+                quadrant = 2
+            elif buffer[2][0] < buffer[0][0] and buffer[2][1] < buffer[0][1]:
+                Angle += 180
+                quadrant = 3
+            elif buffer[2][0] > buffer[0][0] and buffer[2][1] < buffer[0][1]:
+                Angle += 270
+                quadrant = 4
+            
+            
+            print("Angle\n")
+            print(Angle)
+            print("quad\n")
+            print(quadrant)       
             
 
             #set starting position to write the line
             ElevationTurtle.penup()
             ElevationTurtle.home()
-            ElevationTurtle.setx(int(x1))
-            ElevationTurtle.sety(int(y1))
+            ElevationTurtle.setx(int(x2))
+            ElevationTurtle.sety(int(y2))
            
             #drawing
             ElevationTurtle.pendown()
@@ -1297,99 +1418,489 @@ def Choose():
                 
                 
         
-
+            buffer = []
                     
 
-                    
-        #ArcCircle function
-        def RectangleFunction():
+         
 
-            #get user inputs
-            x1 = float(X1Input.get())-(CanvasSizeX/2)
-            y1 = float(Y1Input.get())-(CanvasSizeY/2)
-            x2 = float(X2Input.get())-(CanvasSizeX/2)
-            y2 = float(Y2Input.get())-(CanvasSizeY/2)
-            
-            
+        #Circle function
+        def CircleFunction():
+            global Entities
+            global buffer
+            if len(buffer) == 2: 
 
-            #set starting position to write the line
-            ElevationTurtle.penup()
-            ElevationTurtle.home()
-            ElevationTurtle.setx(int(x1))
-            ElevationTurtle.sety(int(y1))
-           
-           
-           
-            #drawing first line
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(x2,y1)
-            M,N = ElevationTurtle.pos()
+                #get user inputs
+                x1 = buffer[0][0]
+                y1 = buffer[0][1]
+                x2 = buffer[1][0]
+                y2 = buffer[1][1]
+                #for point 1 and 2 to get the R
+                dx = x1 - x2
+                dy = y1 - y2
+                R = math.sqrt(pow(dx,2)+pow(dy,2))
+                Angle = 360
 
-            #for G CODE
-            global GcodeCanvasIndex
-            GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeX/2)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
-            
-            
-                   
-            #drawing second line
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(x2,y2)
-            M,N = ElevationTurtle.pos()
+                #set starting position to write the line
+                ElevationTurtle.penup()
+                ElevationTurtle.home()
+                ElevationTurtle.setx(int(x2))
+                ElevationTurtle.sety(int(y2))
+               
+                #drawing
+                ElevationTurtle.pendown()
+                ElevationTurtle.circle(R,Angle)
 
-            #for G CODE
-            GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeX/2)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
-            
-            
-            #drawing third line
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(x1,y2)
-            M,N = ElevationTurtle.pos()
-
-            #for G CODE
-            GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeX/2)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
-            
-            #drawing fourth line
-            ElevationTurtle.pendown()
-            ElevationTurtle.goto(x1,y1)
-            M,N = ElevationTurtle.pos()
-            #for G CODE
-            GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeX/2)))
-            GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
-            GcodeCanvasIndex+=1
+                #save entity
+                Entities.append(["circle",x1,y1,R,x2,y2])
+                print(Entities)
                 
-         
-         
-        def PolygonFunction():
+                #for G CODE     
+                global GcodeCanvasIndex            
+                I,J = ElevationTurtle.pos()        
 
-            #get user inputs
-            x1 = float(X1Input.get())-(CanvasSizeX/2)
-            y1 = float(Y1Input.get())-(CanvasSizeY/2)
-            R = float(RediusInput.get())
-            Sides = int(SidesInput.get())
+                
+
+                GcodeLines.append("G03 X{} Y{} I{} J{}\n".format(x1+(CanvasSizeX/2),y1+(CanvasSizeY/2),round(I+(CanvasSizeX/2),3),round(J+(CanvasSizeY/2)),3))
+
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+            else:
+                messagebox.showinfo("Wrong input","Enter Only two Coordinates")
+
+            buffer = [] 
+                
+        
+        #Rectangle function
+        def RectangleFunction():
+            global Entities
+            global buffer
+            #get user inputs            
+            if len(buffer) == 2: 
+                x1 = buffer[0][0]
+                y1 = buffer[0][1]
+                x2 = buffer[1][0]
+                y2 = buffer[1][1]
             
             
 
-            #set starting position to write the line
-            ElevationTurtle.penup()
-            ElevationTurtle.home()
-            ElevationTurtle.setx(int(x1))
-            ElevationTurtle.sety(int(y1))
-           
-            #drawing
-            ElevationTurtle.pendown()
-            ElevationTurtle.circle(R, steps = Sides)
-             
-             
+                #set starting position to write the line
+                ElevationTurtle.penup()
+                ElevationTurtle.home()
+                ElevationTurtle.setx(int(x1))
+                ElevationTurtle.sety(int(y1))
+               
+               
+               
+                #drawing first line
+                ElevationTurtle.pendown()
+                ElevationTurtle.goto(x2,y1)
+                M,N = ElevationTurtle.pos()
+                
+                #save entity
+                Entities.append(["line",x1,y1,x2,y1])
+                
+                #for G CODE
+                global GcodeCanvasIndex
+                GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeY/2)))
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+                
+                
+                       
+                #drawing second line
+                ElevationTurtle.pendown()
+                ElevationTurtle.goto(x2,y2)
+                M,N = ElevationTurtle.pos()
 
+                
+                #save entity
+                Entities.append(["line",x2,y1,x2,y2])
+                
+                
+                #for G CODE
+                GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeY/2)))
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+                
+                
+                #drawing third line
+                ElevationTurtle.pendown()
+                ElevationTurtle.goto(x1,y2)
+                M,N = ElevationTurtle.pos()
+                
+                #save entity
+                Entities.append(["line",x2,y2,x1,y2])
+
+                
+                #for G CODE
+                GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeY/2)))
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+                
+                #drawing fourth line
+                ElevationTurtle.pendown()
+                ElevationTurtle.goto(x1,y1)
+                M,N = ElevationTurtle.pos()
+                
+                #save entity
+                Entities.append(["line",x1,y2,x1,y1])
+                print(Entities)
+                
+                #for G CODE
+                GcodeLines.append("G01 X{} Y{}\n".format(M+(CanvasSizeX/2),N+(CanvasSizeY/2)))
+                GcodeCanvas.insert(GcodeCanvasIndex,GcodeLines[int(GcodeCanvasIndex)])
+                GcodeCanvasIndex+=1
+                
+            else:
+                messagebox.showinfo("Wrong input","Enter Only two Coordinates")
+
+            buffer = []
+                
+      
+ 
+        
+        def RotateFunction():
+            global Entities
+
+            arrEntities = []
+            EntityNum = SelectedEntitiesEntry.get()
+            """
+            Set EntityNum to 1 because there is a bug 
+            later maybe I will make the fucttion applicable to more that one entitiy
+            
+            """
+            EntityNum = 1
+            Angle = ValueAEntry.get()
+            #save the entities to rotate
+            for i in range(1,int(EntityNum)+1):
+                arrEntities.append(Entities[-i])
+                
+            #delete the entities to rotate
+            for i in range(1,int(EntityNum)+1):
+                ElevationTurtle.undo()
+
+            #draw the rotated enities
+            for i in range(0,int(EntityNum)):
+                if arrEntities[i][0] == 'line':
+                    x1 = arrEntities[i][1]
+                    y1 = arrEntities[i][2]
+                    x2 = arrEntities[i][3]
+                    y2 = arrEntities[i][4]
+                    
+                    #rotate algorithym
+
+                    Angle =  int(float(Angle)*math.pi/180)
+                    #step 1: move x2,y2 to origin
+                    x2 -= x1
+                    y2 -= y1
+
+                    #step 2: Rotate
+                    rotationMAT = np.array([[math.cos(Angle),-math.sin(Angle)],[math.sin(Angle),math.cos(Angle)]])
+                    PointMAT = np.array([[x2],[y2]])
+
+                    x2,y2 = rotationMAT.dot(PointMAT)
+
+                    x2 += x1
+                    y2 += y1
+
+                    #draw the rotated line
+                    #set starting position to write the line
+                    ElevationTurtle.penup()
+                    ElevationTurtle.setx(int(x1))
+                    ElevationTurtle.sety(int(y1))
+                  
+                    #drawing
+                    ElevationTurtle.pendown()
+                    ElevationTurtle.goto(int(x2),int(y2))
+                    Entities.pop()
+                    Entities.append(["line",x1,y1,float(x2),float(y2)])
              
+             
+        def ScaleFunction():
+                global Entities
+
+                arrEntities = []
+                EntityNum = SelectedEntitiesEntry.get()
+                """
+                Set EntityNum to 1 because there is a bug 
+                later maybe I will make the fucttion applicable to more that one entitiy
+                
+                """
+                EntityNum = 1
+                a = int(ValueAEntry.get())
+                b = int(ValueAEntry.get())
+                
+                if a>0 and b>0:
+                    #save the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        arrEntities.append(Entities[-i])
                         
-             
+                    #delete the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        ElevationTurtle.undo()
+
+                    #draw the rotated enities
+                    for i in range(0,int(EntityNum)):
+                        if arrEntities[i][0] == 'line':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            
+
+                            #step1: move x2,y2 to origin
+                            x2 -= x1
+                            y2 -= y1
+
+                            #step 2: Scale
+                            ScaleMAT = np.array([[a,0],[0,b]])
+                            PointMAT = np.array([[x2],[y2]])
+
+                            x2,y2 = ScaleMAT.dot(PointMAT)
+
+                            x2 += x1
+                            y2 += y1
+
+                            #draw the rotated line
+                            #set starting position to write the line
+                            ElevationTurtle.penup()
+                            ElevationTurtle.setx(int(x1))
+                            ElevationTurtle.sety(int(y1))
+                          
+                            #drawing
+                            ElevationTurtle.pendown()
+                            ElevationTurtle.goto(int(x2),int(y2))
+                            Entities.pop()
+                            Entities.append(["line",x1,y1,float(x2),float(y2)])
+                else:
+                    messagebox.showinfo("Wrong input","Enter Value A and Value B")
+
+
+        def TranslateFunction():
+                global Entities
+
+                arrEntities = []
+                EntityNum = SelectedEntitiesEntry.get()
+                """
+                Set EntityNum to 1 because there is a bug 
+                later maybe I will make the fucttion applicable to more that one entitiy
+                
+                """
+                EntityNum = 1
+                a = int(ValueAEntry.get())
+                b = int(ValueBEntry.get())
+                
+                if a != "" and b != "":
+
+                    #save the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        arrEntities.append(Entities[-i])
+                        
+                    #delete the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        ElevationTurtle.undo()
+
+                    #draw the rotated enities
+                    for i in range(0,int(EntityNum)):
+                        if arrEntities[i][0] == 'line':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            
+
+
+                            #step 1: Translate
+                            TranslateMAT = np.array([[1,0,a],[0,1,b],[0,0,1]])
+                            PointMAT = np.array([[x2],[y2],[1]])
+
+                            x2 = TranslateMAT.dot(PointMAT)[0]
+                            y2 = TranslateMAT.dot(PointMAT)[1]
+
+                            x1 += a
+                            y1 += b
+                            
+
+                            #draw the rotated line
+                            #set starting position to write the line
+                            ElevationTurtle.penup()
+                            ElevationTurtle.setx(int(x1))
+                            ElevationTurtle.sety(int(y1))
+                          
+                            #drawing
+                            ElevationTurtle.pendown()
+                            ElevationTurtle.goto(int(x2),int(y2))
+                            Entities.pop()
+                            Entities.append(["line",x1,y1,float(x2),float(y2)])
+                else:
+                    messagebox.showinfo("Wrong input","Enter Value A and Value B")
+
+
+                    
+        def ExtrudeFunction():
+                global Entities
+                ElevationTurtle.width(10)
+                ElevationTurtle.speed("fastest")
+                arrEntities = []
+                EntityNum = SelectedEntitiesEntry.get()
+
+                a = int(ValueAEntry.get())
+                
+                if a > 0 :
+                    #save the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        arrEntities.append(Entities[-i])
+
+                    #draw the rotated enities
+                    for i in range(0,int(EntityNum)):
+
+                        if arrEntities[i][0] == 'line':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            for j in range(a):
+                                #Translate
+                                x1 = arrEntities[i][1]+5*j
+                                y1 = arrEntities[i][2]+8*j
+                                x2 = arrEntities[i][3]+5*j
+                                y2 = arrEntities[i][4]+8*j
+                                    
+                                
+                                #set starting position to write the line
+                                ElevationTurtle.penup()
+                                ElevationTurtle.setx(int(x1))
+                                ElevationTurtle.sety(int(y1))
+                              
+                                #drawing
+                                ElevationTurtle.pendown()
+                                ElevationTurtle.goto(int(x2),int(y2))
+                                
+                                
+                        if arrEntities[i][0] == 'circle':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            
+                            for j in range(a):
+                                #Translate
+                                x1 = arrEntities[i][1]+5*j
+                                y1 = arrEntities[i][2]+8*j
+                                x2 = arrEntities[i][4]+5*j
+                                y2 = arrEntities[i][5]+8*j
+                                    
+                                
+                               #for point 1 and 2 to get the R
+                                dx = x1 - x2
+                                dy = y1 - y2
+                                R = math.sqrt(pow(dx,2)+pow(dy,2))
+                                Angle = 360
+
+                                #set starting position to write the line
+                                ElevationTurtle.penup()
+                                ElevationTurtle.home()
+                                ElevationTurtle.setx(int(x2))
+                                ElevationTurtle.sety(int(y2))
+                               
+                                #drawing
+                                ElevationTurtle.pendown()
+                                ElevationTurtle.circle(R,Angle)
+                        ElevationTurtle.penup()
+
+
+                else:
+                    messagebox.showinfo("Wrong input","Enter Value A")
+
+                ElevationTurtle.width(1)
+
+
+                
+        def ExtrudeCutFunction():
+                global Entities
+                ElevationTurtle.width(10)
+                ElevationTurtle.speed("fastest")
+                ElevationTurtle.pencolor('gray')
+                arrEntities = []
+                EntityNum = SelectedEntitiesEntry.get()
+
+                a = int(ValueAEntry.get())
+                
+                if a > 0 :
+                    #save the entities to rotate
+                    for i in range(1,int(EntityNum)+1):
+                        arrEntities.append(Entities[-i])
+
+
+                    #draw the rotated enities
+                    for i in range(0,int(EntityNum)):
+
+                        if arrEntities[i][0] == 'line':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            for j in range(a):
+                                #Translate
+                                x1 = arrEntities[i][1]-5*j
+                                y1 = arrEntities[i][2]-8*j
+                                x2 = arrEntities[i][3]-5*j
+                                y2 = arrEntities[i][4]-8*j
+                                    
+                                
+                                #set starting position to write the line
+                                ElevationTurtle.penup()
+                                ElevationTurtle.setx(int(x1))
+                                ElevationTurtle.sety(int(y1))
+                              
+                                #drawing
+                                ElevationTurtle.pendown()
+                                ElevationTurtle.goto(int(x2),int(y2))
+                                
+                                
+                        if arrEntities[i][0] == 'circle':
+                            x1 = arrEntities[i][1]
+                            y1 = arrEntities[i][2]
+                            x2 = arrEntities[i][3]
+                            y2 = arrEntities[i][4]
+                            
+                            for j in range(a):
+                                #Translate
+                                x1 = arrEntities[i][1]-5*j
+                                y1 = arrEntities[i][2]-8*j
+                                x2 = arrEntities[i][4]-5*j
+                                y2 = arrEntities[i][5]-8*j
+                                    
+                                
+                               #for point 1 and 2 to get the R
+                                dx = x1 - x2
+                                dy = y1 - y2
+                                R = math.sqrt(pow(dx,2)+pow(dy,2))
+                                Angle = 360
+
+                                #set starting position to write the line
+                                ElevationTurtle.penup()
+                                ElevationTurtle.home()
+                                ElevationTurtle.setx(int(x2))
+                                ElevationTurtle.sety(int(y2))
+                               
+                                #drawing
+                                ElevationTurtle.pendown()
+                                ElevationTurtle.circle(R,Angle)
+                        ElevationTurtle.penup()
+
+
+                else:
+                    messagebox.showinfo("Wrong input","Enter Value A")
+
+                ElevationTurtle.width(1)
+                ElevationTurtle.pencolor('black')
+
+                
+                
+                
+                
+                
         def ClearFunction() :
             ElevationTurtle.penup()
             ElevationTurtle.clear()
@@ -1398,7 +1909,6 @@ def Choose():
              
 
 
-                 
 
          
          
@@ -1409,26 +1919,49 @@ def Choose():
         CartLine.place(x=0,y=0)
 
 
-        #Redius and Cita line (needs x1, y1, Reduis, Angle)
-        RCitaLine = Button(window,text="R/Angle Line",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = RCitaLineFunction)
-        RCitaLine.place(x=100,y=0)
-
-
-        #Arc Circles (needs x1, y1, Reduis, Angle)
-        ArcCircle = Button(window,text="Arc",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = ArcCircleFunction)
-        ArcCircle.place(x=200,y=0)
-
-
+        
         #Rectangle Circles (needs x1, y1, x2, y2)
         Rectangle = Button(window,text="Rectangle",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = RectangleFunction)
-        Rectangle.place(x=300,y=0)
+        Rectangle.place(x=100,y=0)
 
 
-        #Polygon (needs x1, y1, R, Num)
-        Polygon = Button(window,text="Polygon",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = PolygonFunction)
-        Polygon.place(x=400,y=0)
+        #Circles (needs x1, y1, Reduis)
+        Circle = Button(window,text="Circle",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = CircleFunction)
+        Circle.place(x=200,y=0)
+        
+        
+        #Arc Circles (needs x1, y1, Reduis, Angle)
+        ArcCircle = Button(window,text="Arc",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2,state=DISABLED, command = ArcCircleFunction)
+        ArcCircle.place(x=300,y=0)
+
+        
+        #Rotate (Entity, Value A: Angle)
+        Rotate = Button(window,text="Rotate",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = RotateFunction)
+        Rotate.place(x=400,y=0)
+
+        
+        #Scale (Entity, Value A :scale factor of x, Value B :scale factor of y)
+        Scale = Button(window,text="Scale",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = ScaleFunction)
+        Scale.place(x=100,y=45)
+        
+        
+        #Translate (Entity, Value A :translate factor of x, Value B :translate factor of y)
+        Translate = Button(window,text="Translate",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = TranslateFunction)
+        Translate.place(x=200,y=45)
+        
+        
+        
+        #Extrude (Entity, Value A :translate factor of x, Value B :translate factor of y)
+        Extrude = Button(window,text="Extrude",font='sans 8 bold',bg="tomato", bd = 5, width = 12, height = 2, command = ExtrudeFunction)
+        Extrude.place(x=300,y=45)        
+        
 
 
+        #Extrude (Entity, Value A :translate factor of x, Value B :translate factor of y)
+        Extrude = Button(window,text="Extrude Cut",font='sans 8 bold',bg="tomato", bd = 5, width = 12, height = 2, command = ExtrudeCutFunction)
+        Extrude.place(x=400,y=45)        
+                
+        
         #Clear
         Clear = Button(window,text="Clear",font='sans 8 bold',bg="mediumpurple", bd = 5, width = 12, height = 2, command = ClearFunction)
         Clear.place(x=0,y=45)
@@ -1444,6 +1977,16 @@ def Choose():
 
 
 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 
 
