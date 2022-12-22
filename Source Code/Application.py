@@ -469,6 +469,17 @@ def Choose():
         *******************************
         """
         #optionMenu functions
+        def clearEntries():
+            #Clear Inputs
+            X1Input.delete(0,END)
+            Y1Input.delete(0,END)
+            X2Input.delete(0,END)
+            Y2Input.delete(0,END)
+            LengthInput.delete(0,END)
+            RediusInput.delete(0,END)
+            AngleInput.delete(0,END)
+            SidesInput.delete(0,END)
+            
 
         #Plane Select  (Elevation, Side, Top)
         def PlaneSelectFunction():
@@ -487,7 +498,7 @@ def Choose():
             x2 = float(X2Input.get())-(CanvasSizeX/2)
             y2 = float(Y2Input.get())-(CanvasSizeY/2)
             
-            
+            clearEntries()
 
             if(PlaneSelect == "Elevation" ):
                 #set starting position to write the line
@@ -545,7 +556,7 @@ def Choose():
             x2 = R*(math.cos(math.radians(Angle)))+x1
             y2 = R*(math.sin(math.radians(Angle)))+y1
             
-            
+            clearEntries()
             if(PlaneSelect != "Side" and PlaneSelect != "Top" ):
                 #set starting position to write the line
                 ElevationTurtle.penup()
@@ -603,7 +614,8 @@ def Choose():
             R = float(RediusInput.get())
             Angle = float(AngleInput.get()) #Angle is Cita
             
-            
+            clearEntries()
+
 
             if(PlaneSelect != "Side" and PlaneSelect != "Top" ):
                 #set starting position to write the line
@@ -666,7 +678,8 @@ def Choose():
             x2 = float(X2Input.get())-(CanvasSizeX/2)
             y2 = float(Y2Input.get())-(CanvasSizeY/2)
             
-            
+            clearEntries()
+
 
             if(PlaneSelect != "Side" and PlaneSelect != "Top" ):
                 #set starting position to write the line
@@ -776,7 +789,8 @@ def Choose():
             R = float(RediusInput.get())
             Sides = int(SidesInput.get())
             
-            
+            clearEntries()
+
 
             if(PlaneSelect != "Side" and PlaneSelect != "Top" ):
                 #set starting position to write the line
@@ -1096,6 +1110,13 @@ def Choose():
             
         def ExportDXF():
             global Entities
+            sortedEntities = Entities
+            for i in range(len(sortedEntities)-1):
+                for j in range(len(sortedEntities)-i-1):
+                    if(sortedEntities[j][0] == "circle"):
+                        sac = sortedEntities[j]
+                        sortedEntities[j] = sortedEntities[j+1]
+                        sortedEntities[j+1] = sac
             filepath = DXFEntry.get()
             if filepath == "":
                 messagebox.showinfo("DXF File Name is Emptty","Fill DXF File Name")
@@ -1124,26 +1145,22 @@ def Choose():
             circlelines = circlefile.readlines()
             circlefile.close()
             
-            for entity in Entities:
+            for entity in sortedEntities:
                 #detect line
                 if entity[0] == 'line':
                     for i in range(len(linelines)):
                         if linelines[i].strip() == "10" and linelines[i][0] == " ":
                             entitylist.append(linelines[i])
                             entitylist.append(str(entity[1])+'\n')
-                            print("******"+str(entity[1])+"*******")
                         elif linelines[i].strip() == "20"  and linelines[i][0] == " ":
                             entitylist.append(linelines[i])
                             entitylist.append(str(entity[2])+'\n')
-                            print("******"+str(entity[2])+"*******")
                         elif linelines[i].strip() == "11"  and linelines[i][0] == " ":
                             entitylist.append(linelines[i])
                             entitylist.append(str(entity[3])+'\n')
-                            print("******"+str(entity[3])+"*******")
                         elif linelines[i].strip() == "21"  and linelines[i][0] == " ":
                             entitylist.append(linelines[i])
                             entitylist.append(str(entity[4])+'\n')
-                            print("******"+str(entity[4])+"*******")
                         else:
                             entitylist.append(linelines[i])
 
@@ -1154,21 +1171,17 @@ def Choose():
                         if circlelines[i].strip() == "10" and circlelines[i][0] == " ":
                             entitylist.append(circlelines[i])
                             entitylist.append(str(entity[1])+'\n')
-                            print("******"+str(entity[1])+"*******")
 
                         elif circlelines[i].strip() == "20"  and circlelines[i][0] == " ":
                             entitylist.append(circlelines[i])
                             entitylist.append(str(entity[2])+'\n')
-                            print("******"+str(entity[2])+"*******")
                         
                         elif circlelines[i].strip() == "40"  and circlelines[i][0] == " ":
                             entitylist.append(circlelines[i])
                             entitylist.append(str(entity[3])+'\n')
-                            print("******"+str(entity[3])+"*******")
 
                         else:
-                            entitylist.append(circlelines[i])              
-            print(Entities)
+                            entitylist.append(circlelines[i])     
             for j in entitylist:
                 dxffile.write(j)
             
@@ -1443,8 +1456,10 @@ def Choose():
                 #set starting position to write the line
                 ElevationTurtle.penup()
                 ElevationTurtle.home()
-                ElevationTurtle.setx(int(x2))
-                ElevationTurtle.sety(int(y2))
+                startPosX = x1
+                startPosY = y1-R
+                ElevationTurtle.setx(int(startPosX))
+                ElevationTurtle.sety(int(startPosY))
                
                 #drawing
                 ElevationTurtle.pendown()
